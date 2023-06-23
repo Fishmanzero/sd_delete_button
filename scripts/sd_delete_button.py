@@ -3,37 +3,28 @@ import os
 from modules import scripts
 from modules import script_callbacks
 from pathlib import Path
-try:
-    from send2trash import send2trash
-    send2trash_installed = True
-except ImportError:
-    print("Delete Button: send2trash is not installed. recycle bin cannot be used.")
-    send2trash_installed = False
 
-delete_symbol = '\U0000274c'  # ❌
+delete_text = 'Delete'
 tab_current = None
 image_files = []
 
 def delete(filename):
-    if send2trash_installed:
-        send2trash(filename)
-    else:
-        file = Path(filename)
-        file.unlink()
-    return
+    os.remove(filename)
 
 def sdelb_delete(delete_info):
     for image_file in reversed(image_files):
         if os.path.exists(image_file):
+            directory = image_file.split('/')[-2]
             name = os.path.basename(image_file)
+            
             if not name.startswith('grid-'):
                 delete(image_file)
-                delete_info = f"{image_file} deleted"
+                delete_info = f"{directory}/{name} deleted"
 
                 txt_file = os.path.splitext(image_file)[0] + ".txt"
                 if os.path.exists(txt_file):
                     delete(txt_file)
-                    delete_info = f"{image_file} and .txt deleted"
+                    delete_info = f"{directory}/{name} and .txt deleted"
                 
                 break
         delete_info = "Could not delete anything"
@@ -56,7 +47,7 @@ def on_after_component(component, **kwargs):
     global tab_current, sdelb_delete_info
     element = kwargs.get("elem_id")
     if element == "extras_tab" and tab_current is not None:
-        sdelb_delete_button = gr.Button(value=delete_symbol)
+        sdelb_delete_button = gr.Button(value=delete_text)
         sdelb_delete_button.click(
             fn=sdelb_delete,
             inputs=[sdelb_delete_info],
@@ -64,7 +55,7 @@ def on_after_component(component, **kwargs):
             _js=tab_current + "_sdelb_addEventListener",
         )
         tab_current = None
-    elif element in ["txt2img_gallery", "img2img_gallery"]:
+    elif element in ["txt2img_gallery", "img2img_gallery", "extras_gallery"]:
         tab_current = element.split("_", 1)[0]
         with gr.Column():
             sdelb_delete_info = gr.HTML(elem_id=tab_current + "_sdelb_delete_info")
