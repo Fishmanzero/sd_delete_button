@@ -2,10 +2,11 @@ import gradio as gr
 import os
 from modules import scripts
 from modules import script_callbacks
+from modules.ui_components import ToolButton
 from pathlib import Path
 
-delete_text = 'Delete'
-tab_current = None
+delete_symbol = '\U0000274c'  # ❌
+tab_current = ""
 image_files = []
 
 def delete(filename):
@@ -16,7 +17,7 @@ def sdelb_delete(delete_info):
         if os.path.exists(image_file):
             directory = image_file.split('/')[-2]
             name = os.path.basename(image_file)
-            
+
             if not name.startswith('grid-'):
                 delete(image_file)
                 delete_info = f"{directory}/{name} deleted"
@@ -45,16 +46,21 @@ class Script(scripts.Script):
 
 def on_after_component(component, **kwargs):
     global tab_current, sdelb_delete_info
+    send_extras_name_old = "extras_tab"
+    send_extras_name_new = tab_current + "_send_to_extras"
     element = kwargs.get("elem_id")
-    if element == "extras_tab" and tab_current is not None:
-        sdelb_delete_button = gr.Button(value=delete_text)
+    if element in (send_extras_name_old, send_extras_name_new) and tab_current != "":
+        if element == send_extras_name_old:
+            sdelb_delete_button = gr.Button(value=delete_symbol)
+        else:
+            sdelb_delete_button = ToolButton(delete_symbol, elem_id=tab_current + "_sdelb_delete_button", tooltip="Delete")
         sdelb_delete_button.click(
             fn=sdelb_delete,
             inputs=[sdelb_delete_info],
             outputs=[sdelb_delete_info],
             _js=tab_current + "_sdelb_addEventListener",
         )
-        tab_current = None
+        tab_current = ""
     elif element in ["txt2img_gallery", "img2img_gallery", "extras_gallery"]:
         tab_current = element.split("_", 1)[0]
         with gr.Column():
