@@ -15,17 +15,17 @@ def delete(filename):
 def sdelb_delete(delete_info):
     for image_file in reversed(image_files):
         if os.path.exists(image_file):
-            directory = image_file.split('/')[-2]
+            directory = image_file.split('\\')[-2]
             name = os.path.basename(image_file)
 
             if not name.startswith('grid-'):
                 delete(image_file)
-                delete_info = f"{directory}/{name} deleted"
+                delete_info = f"{directory}\\{name} deleted"
 
                 txt_file = os.path.splitext(image_file)[0] + ".txt"
                 if os.path.exists(txt_file):
                     delete(txt_file)
-                    delete_info = f"{directory}/{name} and .txt deleted"
+                    delete_info = f"{directory}\\{name} and .txt deleted"
                 
                 break
         delete_info = "Could not delete anything"
